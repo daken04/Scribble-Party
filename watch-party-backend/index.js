@@ -35,6 +35,10 @@ db.connect()
 app.use(bodyParser.json());
 app.use(cors());
 
+function generatePartyCode() {
+  return Math.random().toString(36).substring(2, 9).toUpperCase();
+}
+
 app.post('/register', async (req,res)=>{
     const {username , password } =  req.body;
     try{
@@ -74,7 +78,46 @@ app.post('/login', async (req, res) => {
     } catch (error) {
       res.status(500).json({ error: error.message });
     }
-  });
+});
+
+app.post('/create-party',async (req,res)=>{
+  const {name, adminId} = req.body;
+  const partyCode = generatePartyCode();
+
+  try{
+    const result = await db.query(
+      "INSERT INTO parties (name,admin_id,party_code) VALUES ($1,$2,$3) RETURNING *",
+      [name,adminId,partyCode]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch(error){
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/join-party',async (req,res)=>{
+  const {partyCode, userId} = req.body;
+  try{
+    const partyResult = await db.query(
+      'SELECT * FROM parties WHERE party_code = $1',
+      [partyCode]
+    );
+
+    if (partyResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Party not found' });
+    }
+
+    const partyId = partyResult.rows[0].id;
+    const result = await db.query(
+      'INSERT INTO party_users (party_id, user_id) VALUES ($1, $2) RETURNING *',
+      [partyId, userId]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch(error){
+    res.status(500).json({ error: error.message });
+  }
+});
 
 
 server.listen(PORT, () => {
