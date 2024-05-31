@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function JoinParty({ user }){
   const [partyCode, setPartyCode] = useState('');
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   async function handleJoinParty(e){
     e.preventDefault();
@@ -15,6 +17,7 @@ function JoinParty({ user }){
 
       if(res.data){
         setMessage("Joined Successfully")
+        navigate(`/party/${partyCode}`);
       }
       // Redirect to the party page or handle success
     } catch (error) {

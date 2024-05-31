@@ -4,6 +4,7 @@ import Register from './components/Register';
 import Login from './components/Login';
 import CreateParty from './components/CreateParty';
 import JoinParty from './components/JoinParty';
+import PartyPage from './components/PartyPage';
 
 function App() {
     const [user, setUser] = useState(null);
@@ -30,6 +31,7 @@ function App() {
                         <Route path="/login" element={<Login setUser={setUser} />} />
                         <Route path="/create-party" element={<CreateParty user={user} />} />
                         <Route path="/join-party" element={<JoinParty user={user} />} />
+                        <Route path="/party/:partyCode" element={<PartyPage user={user} />} />
                         <Route path="/" element={
                             <div className="text-center">
                                 <h2 className="text-3xl">

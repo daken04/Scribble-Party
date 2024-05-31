@@ -6,6 +6,7 @@ import pg from "pg";
 import http from "http";
 import env from "dotenv";
 import bcrypt from "bcrypt";
+import kafka from "kafka-node";
 
 env.config();
 
@@ -38,6 +39,15 @@ app.use(cors());
 function generatePartyCode() {
   return Math.random().toString(36).substring(2, 9).toUpperCase();
 }
+
+// kafka setup
+const kafkaClient = new kafka.KafkaClient({ kafkaHost: 'localhost:9092' });
+const chatProducer = new kafka.Producer(kafkaClient);
+const chatConsumer = new kafka.Consumer(
+  kafkaClient,
+  [{ topic: 'chat-messages', partition: 0 }],
+  { autoCommit: true }
+);
 
 app.post('/register', async (req,res)=>{
     const {username , password } =  req.body;
@@ -119,6 +129,74 @@ app.post('/join-party',async (req,res)=>{
   }
 });
 
+app.post('/leave-party', async (req, res) => {
+  const { partyCode, userId } = req.body;
+  try {
+      const partyResult = await db.query('SELECT * FROM parties WHERE party_code = $1 AND admin_id = $2', [partyCode, userId]);
+
+      if (partyResult.rows.length > 0) {
+          await db.query('DELETE FROM parties WHERE party_code = $1', [partyCode]);
+          await db.query('DELETE FROM party_users WHERE party_id = $1', [partyResult.rows[0].id]);
+          return res.status(200).json({ message: 'Party deleted successfully' });
+      } else {
+          await db.query('DELETE FROM party_users WHERE party_id = (SELECT id FROM parties WHERE party_code = $1) AND user_id = $2', [partyCode, userId]);
+          return res.status(200).json({ message: 'Left the party successfully' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/party-members/:partyCode', async (req, res) => {
+  const { partyCode } = req.params;
+  try {
+      const partyResult = await db.query('SELECT * FROM parties WHERE party_code = $1', [partyCode]);
+
+      if (partyResult.rows.length === 0) {
+          return res.status(404).json({ message: 'Party not found' });
+      }
+
+      const partyId = partyResult.rows[0].id;
+      const membersResult = await db.query('SELECT users.id, users.username FROM party_users JOIN users ON party_users.user_id = users.id WHERE party_id = $1', [partyId]);
+
+      res.status(200).json(membersResult.rows);
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+});
+
+// Socket.IO event handling
+io.on('connection', (socket) => {
+  console.log('New client connected');
+
+  socket.on('join', (data) => {
+      socket.join(data.partyCode);
+      io.to(data.partyCode).emit('userJoined', data);
+  });
+
+  socket.on('chat', (data) => {
+      const payloads = [
+          { topic: 'chat-messages', messages: JSON.stringify(data) }
+      ];
+      chatProducer.send(payloads, (err, data) => { //produce chat in kafka
+          if (err) console.error(err);
+      });
+  });
+
+  socket.on('leave', (data) => {
+      socket.leave(data.partyCode);
+  });
+
+  socket.on('disconnect', () => {
+      console.log('Client disconnected');
+  });
+});
+
+// Kafka consumers
+chatConsumer.on('message', (message) => {
+  const data = JSON.parse(message.value);
+  io.to(data.partyCode).emit('chat', data);
+});
 
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
