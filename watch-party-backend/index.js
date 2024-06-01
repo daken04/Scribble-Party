@@ -123,6 +123,14 @@ app.post('/join-party',async (req,res)=>{
       [partyId, userId]
     );
 
+    const membersResult = await db.query(
+      'SELECT users.id, users.username FROM users INNER JOIN party_users ON users.id = party_users.user_id WHERE party_users.party_id = $1',
+      [partyId]
+    );
+
+    const members = membersResult.rows;
+    io.to(partyCode).emit('membersUpdate', members);
+
     res.status(201).json(result.rows[0]);
   } catch(error){
     res.status(500).json({ error: error.message });
@@ -141,6 +149,13 @@ app.post('/leave-party', async (req, res) => {
           return res.status(200).json({ message: 'Party deleted successfully' });
       } else {
           await db.query('DELETE FROM party_users WHERE party_id = (SELECT id FROM parties WHERE party_code = $1) AND user_id = $2', [partyCode, userId]);
+          const membersResult = await db.query(
+            'SELECT users.id, users.username FROM users INNER JOIN party_users ON users.id = party_users.user_id WHERE party_users.party_id = (SELECT id FROM parties WHERE party_code = $1)',
+            [partyCode]
+          );
+      
+          const members = membersResult.rows;
+          io.to(partyCode).emit('membersUpdate', members);
           return res.status(200).json({ message: 'Left the party successfully' });
       }
   } catch (error) {
@@ -196,6 +211,16 @@ io.on('connection', (socket) => {
       socket.leave(data.partyCode);
   });
 
+  socket.on('shareScreen', (data) => {
+    console.log('Screen sharing started');
+    const { partyCode, stream } = data;
+    if (stream) {
+        io.to(partyCode).emit('screenStream', { stream: stream.map(track => track.toJSON()) });
+    } else {
+        io.to(partyCode).emit('screenStream', { stream: null });
+    }
+  });
+
   socket.on('disconnect', () => {
       console.log('Client disconnected');
   });
@@ -210,5 +235,3 @@ chatConsumer.on('message', (message) => {
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
-
