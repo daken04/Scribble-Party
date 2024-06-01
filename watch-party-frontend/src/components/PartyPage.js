@@ -3,22 +3,26 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:5000');
+const socket = io('http://localhost:5000',{ autoConnect: false });
 
 function PartyPage({user}){
     const { partyCode } = useParams();
     const [members, setMembers] = useState([]);
+    const [partyDetails, setPartyDetails] = useState({});
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
     const videoRef = useRef(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchMembers = async () => {
+        socket.connect();
+
+        const fetchPartyDetails = async () => {
           const res = await axios.get(`http://localhost:5000/party-members/${partyCode}`);
-          setMembers(res.data);
+          setPartyDetails(res.data);
+          setMembers(res.data.members);
         };
-        fetchMembers();
+        fetchPartyDetails();
     
         socket.emit('join', { partyCode, userId: user.id });
     
@@ -29,17 +33,26 @@ function PartyPage({user}){
         return () => {
             socket.emit('leave', { partyCode, userId: user.id });
             socket.off('chat');
+            socket.disconnect();
         };
     }, [partyCode, user.id]);
 
     const handleLeaveParty = async () => {
-        await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
-        navigate('/');
-    };
+        try {
+          await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
+          navigate('/');
+        } catch (error) {
+          console.error('Error leaving party:', error);
+        }
+      };
     
     const handleDeleteParty = async () => {
-        await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
-        navigate('/');
+        try {
+            await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
+            navigate('/');
+        } catch (error) {
+            console.error('Error deleting party:', error);
+        }
     };
 
     async function handleShareScreen(){
@@ -55,7 +68,7 @@ function PartyPage({user}){
         e.preventDefault();
         const newMessage = { userId: user.username, message, partyCode };
         socket.emit('chat', newMessage);
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        setMessages((prevMessages) => [...prevMessages]);
         setMessage('');
     };
 
@@ -66,14 +79,14 @@ function PartyPage({user}){
                 <ul>
                 {members.map((member) => (
                 <li key={member.id} className={member.id === user.id ? 'font-bold' : ''}>
-                    {member.username}{member.id === members[0]?.admin_id && ' (Admin)'}
+                    {member.username}{member.id === partyDetails.admin_id && ' (Admin)'}
                 </li>
                 ))}
                 </ul>
-                {members[0]?.admin_id === user.id && (
-                <button onClick={handleDeleteParty} className="mt-4 bg-red-500 text-white py-2 px-4 rounded">
-                    Delete Party
-                </button>
+                {partyDetails.admin_id === user.id && (
+                    <button onClick={handleDeleteParty} className="mt-4 bg-red-500 text-white py-2 px-4 rounded">
+                        Delete Party
+                    </button>
                 )}
                 <button onClick={handleLeaveParty} className="mt-4 bg-blue-500 text-white py-2 px-4 rounded">
                     Leave Party

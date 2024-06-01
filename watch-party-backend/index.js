@@ -135,8 +135,9 @@ app.post('/leave-party', async (req, res) => {
       const partyResult = await db.query('SELECT * FROM parties WHERE party_code = $1 AND admin_id = $2', [partyCode, userId]);
 
       if (partyResult.rows.length > 0) {
-          await db.query('DELETE FROM parties WHERE party_code = $1', [partyCode]);
           await db.query('DELETE FROM party_users WHERE party_id = $1', [partyResult.rows[0].id]);
+          await db.query('DELETE FROM parties WHERE party_code = $1', [partyCode]);
+          console.log("'Party deleted successfully'");
           return res.status(200).json({ message: 'Party deleted successfully' });
       } else {
           await db.query('DELETE FROM party_users WHERE party_id = (SELECT id FROM parties WHERE party_code = $1) AND user_id = $2', [partyCode, userId]);
@@ -159,7 +160,12 @@ app.get('/party-members/:partyCode', async (req, res) => {
       const partyId = partyResult.rows[0].id;
       const membersResult = await db.query('SELECT users.id, users.username FROM party_users JOIN users ON party_users.user_id = users.id WHERE party_id = $1', [partyId]);
 
-      res.status(200).json(membersResult.rows);
+      const partyDetails = {
+        ...partyResult.rows[0],
+        members: membersResult.rows
+      };
+
+      res.status(200).json(partyDetails);
   } catch (error) {
       res.status(500).json({ error: error.message });
   }
@@ -170,11 +176,13 @@ io.on('connection', (socket) => {
   console.log('New client connected');
 
   socket.on('join', (data) => {
+      console.log(`User ${data.userId} joined party ${data.partyCode}`);
       socket.join(data.partyCode);
       io.to(data.partyCode).emit('userJoined', data);
   });
 
   socket.on('chat', (data) => {
+      console.log(`Message from ${data.userId} in party ${data.partyCode}: ${data.message}`);
       const payloads = [
           { topic: 'chat-messages', messages: JSON.stringify(data) }
       ];
@@ -184,6 +192,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('leave', (data) => {
+      console.log(`User ${data.userId} left party ${data.partyCode}`);
       socket.leave(data.partyCode);
   });
 
