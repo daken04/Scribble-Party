@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-function CreateParty({ user }){
+function CreateParty({ user }) {
   const [partyName, setPartyName] = useState('');
-  const [partyCode, setPartyCode] = useState('');
+  const navigate = useNavigate();
 
-  async function handleCreateParty(e){
+  async function handleCreateParty(e) {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:5000/create-party', {
         name: partyName,
         adminId: user.id,
       });
-      setPartyCode(res.data.party_code);
+      const partyCode = res.data.party_code;
+      navigate(`/party/${partyCode}`);
     } catch (error) {
       console.error(error);
     }
@@ -41,7 +43,6 @@ function CreateParty({ user }){
               Create Party
             </button>
           </div>
-          {partyCode && <p className="mt-4 text-center text-green-500">Party Code: {partyCode}</p>}
         </form>
       </div>
     </div>
