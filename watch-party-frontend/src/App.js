@@ -12,7 +12,7 @@ function App() {
     return (
         <Router>
             <div className="min-h-screen flex flex-col bg-gray-100">
-                <nav className="bg-blue-600 p-4 flex justify-between items-center">
+                <nav className="bg-purple-600 p-4 flex justify-between items-center">
                     <div className="text-white font-bold text-xl">
                         <Link to="/">Watch Party</Link>
                     </div>
@@ -39,10 +39,10 @@ function App() {
                                 </h2>
                                 {user && (
                                     <div className="mt-4">
-                                        <Link to="/create-party" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2">
+                                        <Link to="/create-party" className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded m-2">
                                             Create Party
                                         </Link>
-                                        <Link to="/join-party" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded m-2">
+                                        <Link to="/join-party" className="bg-purple-500 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded m-2">
                                             Join Party
                                         </Link>
                                     </div>

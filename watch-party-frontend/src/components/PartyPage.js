@@ -215,7 +215,7 @@ function PartyPage({ user }) {
               placeholder="Type a message"
               required
             />
-            <button type="submit" className="w-full bg-blue-500 text-white py-2 px-4 rounded">
+            <button type="submit" className="w-full bg-purple-500 text-white py-2 px-4 rounded">
               Send
             </button>
           </form>

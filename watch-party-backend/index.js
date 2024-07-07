@@ -6,7 +6,6 @@ import pg from "pg";
 import http from "http";
 import env from "dotenv";
 import bcrypt from "bcrypt";
-import kafka from "kafka-node";
 
 env.config();
 
@@ -39,15 +38,6 @@ app.use(cors());
 function generatePartyCode() {
   return Math.random().toString(36).substring(2, 9).toUpperCase();
 }
-
-// kafka setup
-const kafkaClient = new kafka.KafkaClient({ kafkaHost: 'localhost:9092' });
-const chatProducer = new kafka.Producer(kafkaClient);
-const chatConsumer = new kafka.Consumer(
-  kafkaClient,
-  [{ topic: 'chat-messages', partition: 0 }],
-  { autoCommit: true }
-);
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
@@ -208,12 +198,7 @@ io.on('connection', (socket) => {
 
     socket.on('chat', (data) => {
         console.log(`Message from ${data.userId} in party ${data.partyCode}: ${data.message}`);
-        const payloads = [
-            { topic: 'chat-messages', messages: JSON.stringify(data) }
-        ];
-        chatProducer.send(payloads, (err, data) => { //produce chat in kafka
-            if (err) console.error(err);
-        });
+        io.to(data.partyCode).emit('chat', data);
     });
 
     socket.on('leave', (data) => {
@@ -226,19 +211,13 @@ io.on('connection', (socket) => {
     });
 
     socket.on('drawingData', (data) => {
-      // console.log('Broadcasting drawing data:', data);
-      socket.to(data.partyCode).emit('drawingData', data);
+        console.log('Broadcasting drawing data:', data);
+        socket.to(data.partyCode).emit('drawingData', data);
     });
 
     socket.on('clearDrawing', (partyCode) => {
-      socket.to(partyCode).emit('clearDrawing');
+        socket.to(partyCode).emit('clearDrawing');
     });
-});
-
-// Kafka consumers
-chatConsumer.on('message', (message) => {
-    const data = JSON.parse(message.value);
-    io.to(data.partyCode).emit('chat', data);
 });
 
 server.listen(PORT, () => {
