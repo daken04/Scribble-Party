@@ -9,7 +9,7 @@ import bcrypt from "bcrypt";
 
 env.config();
 
-const PORT = process.env.PORT;
+const PORT = 5000;
 const saltRounds = 10;
 const app = express();
 const server = http.createServer(app);
@@ -21,12 +21,33 @@ const io = new Server(server, {
 });
 
 const db = new pg.Client({
-    user: process.env.POSTGRES_USER,
-    host: process.env.POSTGRES_HOST,
-    database: process.env.POSTGRES_DB,
-    password: process.env.POSTGRES_PASS,
-    port: process.env.POSTGRES_PORT,
+    user: "postgres",
+    host: "db",
+    database: "watchparty",
+    password: "password",
+    port: 5432,
 });
+
+const initializeTables = async () => {
+    await db.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(50) NOT NULL,
+        password VARCHAR(100) NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS parties (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(100) NOT NULL,
+        admin_id INTEGER REFERENCES users(id),
+        party_code VARCHAR(7) NOT NULL
+      );
+      CREATE TABLE IF NOT EXISTS party_users (
+        id SERIAL PRIMARY KEY,
+        party_id INTEGER REFERENCES parties(id),
+        user_id INTEGER REFERENCES users(id)
+      );
+    `);
+  };
 
 db.connect()
   .then(() => console.log("Connected to PostgreSQL"))
@@ -220,6 +241,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT,() => {
     console.log(`Server running on port ${PORT}`);
 });
