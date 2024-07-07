@@ -32,7 +32,7 @@ function PartyPage({ user }) {
 
     if (!emit) return;
     socket.emit('drawingData', { x0, y0, x1, y1, partyCode });
-    console.log('Emitting drawing data:', { x0, y0, x1, y1, partyCode });
+    //console.log('Emitting drawing data:', { x0, y0, x1, y1, partyCode });
   }, [partyCode]);
 
   const clearDrawing = useCallback(() => {
@@ -65,7 +65,7 @@ function PartyPage({ user }) {
     });
 
     socket.on('drawingData', (data) => {
-      console.log('Received drawing data from server:', data);
+      //console.log('Received drawing data from server:', data);
       const { x0, y0, x1, y1 } = data;
       drawLine(x0, y0, x1, y1, false);
     });

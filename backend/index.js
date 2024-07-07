@@ -144,7 +144,7 @@ app.post('/leave-party', async (req, res) => {
         if (partyResult.rows.length > 0) {
             await db.query('DELETE FROM party_users WHERE party_id = $1', [partyResult.rows[0].id]);
             await db.query('DELETE FROM parties WHERE party_code = $1', [partyCode]);
-            console.log("'Party deleted successfully'");
+            //console.log("'Party deleted successfully'");
             io.to(partyCode).emit('partyDeleted');
             return res.status(200).json({ message: 'Party deleted successfully' });
         } else {
@@ -188,30 +188,30 @@ app.get('/party-members/:partyCode', async (req, res) => {
 
 // Socket.IO event handling
 io.on('connection', (socket) => {
-    console.log('New client connected');
+    //console.log('New client connected');
 
     socket.on('join', (data) => {
-        console.log(`User ${data.userId} joined party ${data.partyCode}`);
+        //console.log(`User ${data.userId} joined party ${data.partyCode}`);
         socket.join(data.partyCode);
         io.to(data.partyCode).emit('userJoined', data);
     });
 
     socket.on('chat', (data) => {
-        console.log(`Message from ${data.userId} in party ${data.partyCode}: ${data.message}`);
+        //console.log(`Message from ${data.userId} in party ${data.partyCode}: ${data.message}`);
         io.to(data.partyCode).emit('chat', data);
     });
 
     socket.on('leave', (data) => {
-        console.log(`User ${data.userId} left party ${data.partyCode}`);
+        //console.log(`User ${data.userId} left party ${data.partyCode}`);
         socket.leave(data.partyCode);
     });
 
     socket.on('disconnect', () => {
-        console.log('Client disconnected');
+        //console.log('Client disconnected');
     });
 
     socket.on('drawingData', (data) => {
-        console.log('Broadcasting drawing data:', data);
+        //console.log('Broadcasting drawing data:', data);
         socket.to(data.partyCode).emit('drawingData', data);
     });
 
