@@ -4,13 +4,17 @@
 
 Scribble Party is a web application designed to facilitate virtual parties where users can join rooms, chat, and collaboratively draw on a shared canvas. The application is built using React for the frontend, Node.js for the backend, PostgreSQL as the database, and utilizes Socket.IO for real-time communication.
 
-## Features
+## Technologies Used
+- **Backend**: Node.js, Express, PostgreSQL, Socket.io
+- **Frontend**: React, Tailwind CSS, Socket.io-client
+- **Containerization**: Docker
 
-- User registration and authentication
-- Create and join party rooms
-- Real-time chat within party rooms
-- Collaborative drawing on a shared canvas
-- Admin controls to delete parties
+## Features
+- Real-time collaborative drawing
+- Real-time chat functionality
+- User authentication
+- Party management (create, join, leave, delete)
+- Responsive design with Tailwind CSS
 
 ## Prerequisites
 
