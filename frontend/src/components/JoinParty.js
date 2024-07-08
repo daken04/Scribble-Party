@@ -10,7 +10,7 @@ function JoinParty({ user }){
   async function handleJoinParty(e){
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/join-party', {
+      const res = await axios.post('http://localhost:5001/join-party', {
         partyCode: partyCode,
         userId: user.id,
       });

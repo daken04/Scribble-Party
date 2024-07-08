@@ -11,7 +11,7 @@ const Login = ({ setUser }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5000/login', { username, password });
+      const res = await axios.post('http://localhost:5001/login', { username, password });
       setUser(res.data);
       navigate('/');
     } catch (error) {

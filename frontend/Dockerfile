@@ -6,6 +6,10 @@ WORKDIR /app
 
 # Install app dependencies.
 COPY package*.json ./
+
+# Install Python 3 and pip
+# RUN apt-get update && apt-get install -y python3-pip
+
 RUN npm install
 
 # Copy the rest of the app code.

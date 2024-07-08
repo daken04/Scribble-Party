@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
 import io from 'socket.io-client';
 
-const socket = io('http://localhost:5000', { autoConnect: false });
+const socket = io('http://localhost:5001', { autoConnect: false });
 
 function PartyPage({ user }) {
   const { partyCode } = useParams();
@@ -48,7 +48,7 @@ function PartyPage({ user }) {
     socket.connect();
 
     const fetchPartyDetails = async () => {
-      const res = await axios.get(`http://localhost:5000/party-members/${partyCode}`);
+      const res = await axios.get(`http://localhost:5001/party-members/${partyCode}`);
       setPartyDetails(res.data);
       setMembers(res.data.members);
     };
@@ -127,7 +127,7 @@ function PartyPage({ user }) {
 
   const handleLeaveParty = async () => {
     try {
-      await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
+      await axios.post('http://localhost:5001/leave-party', { partyCode, userId: user.id });
       navigate('/');
     } catch (error) {
       console.error('Error leaving party:', error);
@@ -136,7 +136,7 @@ function PartyPage({ user }) {
 
   const handleDeleteParty = async () => {
     try {
-      await axios.post('http://localhost:5000/leave-party', { partyCode, userId: user.id });
+      await axios.post('http://localhost:5001/leave-party', { partyCode, userId: user.id });
       navigate('/');
     } catch (error) {
       console.error('Error deleting party:', error);
