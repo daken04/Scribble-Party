@@ -9,7 +9,7 @@ import bcrypt from "bcrypt";
 
 env.config();
 
-const PORT = 5000;
+const PORT = 5001;
 const saltRounds = 10;
 const app = express();
 const server = http.createServer(app);
@@ -35,12 +35,14 @@ const initializeTables = async () => {
         username VARCHAR(50) NOT NULL,
         password VARCHAR(100) NOT NULL
       );
+
       CREATE TABLE IF NOT EXISTS parties (
         id SERIAL PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         admin_id INTEGER REFERENCES users(id),
         party_code VARCHAR(7) NOT NULL
       );
+
       CREATE TABLE IF NOT EXISTS party_users (
         id SERIAL PRIMARY KEY,
         party_id INTEGER REFERENCES parties(id),
@@ -48,6 +50,10 @@ const initializeTables = async () => {
       );
     `);
   };
+
+initializeTables().catch(error => {
+    console.error("Error initializing tables:", error);
+  });
 
 db.connect()
   .then(() => console.log("Connected to PostgreSQL"))
