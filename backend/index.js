@@ -20,7 +20,7 @@ const io = new Server(server, {
     },
 });
 
-const db = new pg.Client({
+const db = new pg.Client({ // create pg client
     user: "postgres",
     host: "db",
     database: "watchparty",
@@ -247,6 +247,9 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(PORT,() => {
+// server.listen(PORT,() => {
+//     console.log(`Server running on port ${PORT}`);
+// });
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });

@@ -6,6 +6,8 @@ function CreateParty({ user }) {
   const [partyName, setPartyName] = useState('');
   const navigate = useNavigate();
 
+  //http://localhost:5001
+
   async function handleCreateParty(e) {
     e.preventDefault();
     try {
