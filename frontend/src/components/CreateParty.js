@@ -11,7 +11,7 @@ function CreateParty({ user }) {
   async function handleCreateParty(e) {
     e.preventDefault();
     try {
-      const res = await axios.post('http:/localhost:5001/create-party', {
+      const res = await axios.post('http://localhost:5001/create-party', {
         name: partyName,
         adminId: user.id,
       });
