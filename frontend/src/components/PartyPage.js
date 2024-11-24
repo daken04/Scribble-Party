@@ -40,6 +40,10 @@ function PartyPage({ user }) {
     const context = contextRef.current;
     if (canvas && context) {
       context.clearRect(0, 0, canvas.width, canvas.height);
+
+      context.lineCap = 'round';
+      context.strokeStyle = 'black';
+      context.lineWidth = 2;
     }
     socket.emit('clearDrawing', partyCode);
   }, [partyCode]);
@@ -70,9 +74,24 @@ function PartyPage({ user }) {
       drawLine(x0, y0, x1, y1, false);
     });
 
+    // socket.on('clearDrawing', () => {
+    //   clearDrawing();
+    // });
+
     socket.on('clearDrawing', () => {
-      clearDrawing();
+      const canvas = canvasRef.current;
+      const context = contextRef.current;
+      if (canvas && context) {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        // Reinitialize the canvas context
+        context.lineCap = 'round';
+        context.strokeStyle = 'black';
+        context.lineWidth = 2;
+      }
+      setDrawing(false);
+      setCurrent({ x: 0, y: 0 });
     });
+    
 
     socket.on('partyDeleted', () => {
       alert('The party has been deleted by the admin.');

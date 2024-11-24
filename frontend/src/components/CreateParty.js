@@ -6,10 +6,12 @@ function CreateParty({ user }) {
   const [partyName, setPartyName] = useState('');
   const navigate = useNavigate();
 
+  //http://localhost:5001
+
   async function handleCreateParty(e) {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:5001/create-party', {
+      const res = await axios.post('http:/localhost:5001/create-party', {
         name: partyName,
         adminId: user.id,
       });
